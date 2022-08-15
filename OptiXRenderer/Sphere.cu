@@ -64,7 +64,7 @@ RT_PROGRAM void intersect(int primIndex)
     if (rtPotentialIntersection(t))
     {
         // Pass attributes
-        attrib = sphere.attribute;
+        attrib.phongmat = sphere.phongmat;
         // TODO: assign attribute variables here
 
         rtReportIntersection(0);
@@ -76,10 +76,14 @@ RT_PROGRAM void bound(int primIndex, float result[6])
     Sphere sphere = spheres[primIndex];
 
     // TODO: implement sphere bouding box
-    result[0] = -1000.f;
-    result[1] = -1000.f;
-    result[2] = -1000.f;
-    result[3] = 1000.f;
-    result[4] = 1000.f;
-    result[5] = 1000.f;
+    float x, y, z;
+    x = length(make_float3(sphere.transform.getRow(0)));
+    y = length(make_float3(sphere.transform.getRow(1)));
+    z = length(make_float3(sphere.transform.getRow(2)));
+    result[0] = sphere.transform[3] - x;
+    result[1] = sphere.transform[7] - y;
+    result[2] = sphere.transform[11] - z;
+    result[3] = sphere.transform[3] + x;
+    result[4] = sphere.transform[7] + y;
+    result[5] = sphere.transform[11] + z;
 }

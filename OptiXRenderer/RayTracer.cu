@@ -23,7 +23,7 @@ rtDeclareVariable(Attributes, attrib, attribute attrib, );
 RT_PROGRAM void closestHit()
 {
     // TDOO: calculate the color using the Blinn-Phong reflection model
-    float3 diffuse = attrib.ambient;
-    float3 result = diffuse;
+    float3 ambient = attrib.phongmat.ambient;
+    float3 result = ambient;
     payload.radiance = result;
 }

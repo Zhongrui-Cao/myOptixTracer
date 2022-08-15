@@ -51,11 +51,12 @@ std::shared_ptr<Scene> SceneLoader::load(std::string sceneFilename)
 
     // temp vars
     int vertexCount = 0;
-    optix::float3 ambient;
-    optix::float3 diffuse;
-    optix::float3 specular;
-    optix::float3 emission;
-    int shininess;
+    MaterialProperties matprop;
+    matprop.ambient   = optix::make_float3(0);
+    matprop.diffuse   = optix::make_float3(0);
+    matprop.specular  = optix::make_float3(0);
+    matprop.emission  = optix::make_float3(0);
+    matprop.shininess = 0;
 
     // Read a line in the scene file in each iteration
     while (std::getline(in, str))
@@ -101,74 +102,94 @@ std::shared_ptr<Scene> SceneLoader::load(std::string sceneFilename)
         }
         else if (cmd == "maxverts" && readValues(s, 1, fvalues))
         {
-            scene->vertices = std::vector<optix::float3>(fvalues[0]);
+            //真你妈坑人，maxverts没用，用了triangle会index out of bounds
+            //scene->vertices = std::vector<optix::float3>(fvalues[0]);
         }
         else if (cmd == "vertex" && readValues(s, 3, fvalues))
         {
-            scene->vertices[vertexCount].x = fvalues[0];
-            scene->vertices[vertexCount].y = fvalues[1];
-            scene->vertices[vertexCount].z = fvalues[2];
-            vertexCount++;
+            scene->vertices.push_back(
+                optix::make_float3(fvalues[0], fvalues[1], fvalues[2]));
         }
-        else if (cmd == "tri" && readValues(s, 3, fvalues))
+        else if (cmd == "tri" && readValues(s, 3, ivalues))
         {
             Triangle triangle;
-            optix::Matrix4x4& m = transStack.top();
-            triangle.v0 = optix::make_float3(m * optix::make_float4(scene->vertices[fvalues[0]], 1));
-            triangle.v1 = optix::make_float3(m * optix::make_float4(scene->vertices[fvalues[1]], 1));
-            triangle.v2 = optix::make_float3(m * optix::make_float4(scene->vertices[fvalues[2]], 1));
+            optix::Matrix4x4 trans = transStack.top();
+            triangle.v0 = transformPoint(scene->vertices[ivalues[0]]);
+            triangle.v1 = transformPoint(scene->vertices[ivalues[1]]);
+            triangle.v2 = transformPoint(scene->vertices[ivalues[2]]);
+            triangle.normal = optix::normalize(optix::cross(triangle.v1 - triangle.v0, triangle.v2 - triangle.v0));
 
-            triangle.attribute.ambient = ambient;
-            triangle.attribute.diffuse = diffuse;
-            triangle.attribute.specular = specular;
-            triangle.attribute.emission = emission;
-            triangle.attribute.shininess = shininess;
+            triangle.phongmat = matprop;
 
             scene->triangles.push_back(triangle);
         }
         else if (cmd == "sphere" && readValues(s, 4, fvalues))
         {
             Sphere sphere;
-            optix::Matrix4x4& m = transStack.top();
             sphere.center = optix::make_float3(fvalues[0], fvalues[1], fvalues[2]);
             sphere.radius = fvalues[3];
             sphere.transform = transStack.top();
 
-            sphere.attribute.ambient = ambient;
-            sphere.attribute.diffuse = diffuse;
-            sphere.attribute.specular = specular;
-            sphere.attribute.emission = emission;
-            sphere.attribute.shininess = shininess;
+            sphere.phongmat = matprop;
 
             scene->spheres.push_back(sphere);
         }
         else if (cmd == "ambient" && readValues(s, 3, fvalues))
         {
-            ambient.x = fvalues[0];
-            ambient.y = fvalues[1];
-            ambient.z = fvalues[2];
+            matprop.ambient.x = fvalues[0];
+            matprop.ambient.y = fvalues[1];
+            matprop.ambient.z = fvalues[2];
         }
         else if (cmd == "diffuse" && readValues(s, 3, fvalues))
         {
-            diffuse.x = fvalues[0];
-            diffuse.y = fvalues[1];
-            diffuse.z = fvalues[2];
+            matprop.diffuse.x = fvalues[0];
+            matprop.diffuse.y = fvalues[1];
+            matprop.diffuse.z = fvalues[2];
         }
         else if (cmd == "specular" && readValues(s, 3, fvalues))
         {
-            specular.x = fvalues[0];
-            specular.y = fvalues[1];
-            specular.z = fvalues[2];
+            matprop.specular.x = fvalues[0];
+            matprop.specular.y = fvalues[1];
+            matprop.specular.z = fvalues[2];
         }
         else if (cmd == "emission" && readValues(s, 3, fvalues))
         {
-            emission.x = fvalues[0];
-            emission.y = fvalues[1];
-            emission.z = fvalues[2];
+            matprop.emission.x = fvalues[0];
+            matprop.emission.y = fvalues[1];
+            matprop.emission.z = fvalues[2];
         }
         else if (cmd == "shininess" && readValues(s, 1, fvalues))
         {
-            shininess = fvalues[0];
+            matprop.shininess = fvalues[0];
+        }
+        else if (cmd == "translate" && readValues(s, 3, fvalues))
+        { 
+            rightMultiply(optix::Matrix4x4::translate(optix::make_float3(fvalues[0], fvalues[1], fvalues[2])));
+        }
+        else if (cmd == "scale" && readValues(s, 3, fvalues))
+        {
+            rightMultiply(optix::Matrix4x4::scale(optix::make_float3(fvalues[0], fvalues[1], fvalues[2])));
+        }
+        else if (cmd == "rotate" && readValues(s, 4, fvalues))
+        {
+            float radians = fvalues[3] * M_PIf / 180.f;
+            optix::float3 axis = normalize(optix::make_float3(fvalues[0], fvalues[1], fvalues[2]));
+            optix::Matrix4x4 rot = optix::Matrix4x4::rotate(radians, axis);
+            rightMultiply(optix::Matrix4x4(rot));
+        }
+        else if (cmd == "pushTransform")
+        {
+            transStack.push(transStack.top());
+        }
+        else if (cmd == "popTransform") {
+            if (transStack.size() <= 1)
+            {
+                std::cerr << "Stack has no elements. Cannot pop" << std::endl;
+            }
+            else
+            {
+                transStack.pop();
+            }
         }
         // TODO: use the examples above to handle other commands
     }

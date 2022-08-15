@@ -26,7 +26,7 @@ RT_PROGRAM void intersect(int primIndex)
         return;
 
     float An = dot(tri.v0, normal);
-    float P0n = dot(ray.origin + ray.tmin * ray.direction, normal);
+    float P0n = dot(ray.origin, normal);
 
     // intersect distance
     t = (An - P0n) / normray;
@@ -54,7 +54,7 @@ RT_PROGRAM void intersect(int primIndex)
     if (rtPotentialIntersection(t))
     {
         // Pass attributes
-        attrib = tri.attribute;
+        attrib.phongmat = tri.phongmat;
         // TODO: assign attribute variables here
 
         rtReportIntersection(0);
@@ -66,10 +66,10 @@ RT_PROGRAM void bound(int primIndex, float result[6])
     Triangle tri = triangles[primIndex];
 
     // TODO: implement triangle bouding box
-    result[0] = -1000.f;
-    result[1] = -1000.f;
-    result[2] = -1000.f;
-    result[3] = 1000.f;
-    result[4] = 1000.f;
-    result[5] = 1000.f;
+    result[0] = fminf(fminf(tri.v0.x, tri.v1.x), tri.v2.x);
+    result[1] = fminf(fminf(tri.v0.y, tri.v1.y), tri.v2.y);
+    result[2] = fminf(fminf(tri.v0.z, tri.v1.z), tri.v2.z);
+    result[3] = fmaxf(fmaxf(tri.v0.x, tri.v1.x), tri.v2.x);
+    result[4] = fmaxf(fmaxf(tri.v0.y, tri.v1.y), tri.v2.y);
+    result[5] = fmaxf(fmaxf(tri.v0.z, tri.v1.z), tri.v2.z);
 }
