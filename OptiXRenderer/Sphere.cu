@@ -18,7 +18,7 @@ RT_PROGRAM void intersect(int primIndex)
     float t;
 
     // TODO: implement sphere intersection test here
-    float3 p0 = make_float3(sphere.transform.inverse() * make_float4(ray.origin, 1) + ray.tmin * make_float4(ray.direction, 0));
+    float3 p0 = make_float3(sphere.transform.inverse() * make_float4(ray.origin, 1) + 0.01f * make_float4(ray.direction, 0));
     float3 d  = make_float3(normalize(sphere.transform.inverse() * make_float4(ray.direction, 0)));
 
     float3 oc   = p0 - sphere.center;
@@ -55,17 +55,22 @@ RT_PROGRAM void intersect(int primIndex)
         t = rootminus;
     }
 
+
     float3 p = (p0 + d * t);
-    //TODO
-    float3 intercection = make_float3(sphere.transform * make_float4(p, 1));
-    t = length(intercection - ray.origin);
+    float4 intercection = sphere.transform * make_float4(p, 1);
+    p = make_float3(intercection) / intercection.w; // intersection in the world space
+    t = length(p - ray.origin);
 
     // Report intersection (material programs will handle the rest)
     if (rtPotentialIntersection(t))
     {
         // Pass attributes
         attrib.phongmat = sphere.phongmat;
-        // TODO: assign attribute variables here
+        attrib.intersection = p;
+        attrib.wo = -ray.direction;
+        float4 tintersection = sphere.transform.inverse() * make_float4(attrib.intersection, 1);
+        attrib.normal = normalize(make_float3(tintersection) / tintersection.w);
+        attrib.normal = normalize(make_float3(sphere.transform.inverse().transpose() * make_float4(attrib.normal, 0)));
 
         rtReportIntersection(0);
     }

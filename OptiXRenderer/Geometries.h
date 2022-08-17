@@ -13,13 +13,14 @@ struct MaterialProperties
     optix::float3 diffuse;
     optix::float3 specular;
     optix::float3 emission;
-    int shininess;
+    float shininess;
 };
 
 struct Attributes
 {
     // TODO: define the attributes structure
     MaterialProperties phongmat;
+    optix::float3 intersection, normal, wo;
 };
 
 struct Triangle

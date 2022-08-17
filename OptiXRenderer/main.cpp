@@ -14,22 +14,35 @@ int main(int argc, char** argv)
 
         // Create the optix app by passing in the path to the scene file
         Renderer renderer(scene);
-         
-        // Display the result. Rendered image will be saved automatically when you 
-        // close the viewer. 
-        sutil::initGlut(&argc, argv);
-        Viewer::setRenderer(&renderer);
-        Viewer::run();
+        bool display = true;
 
-        // If you don't need the viewer. You can uncomment the following lines and
-        // comment the three lines above.
-        /*
-        renderer.run(false);
-        resultToPNG(renderer.getOutputFilename(),
-            renderer.getWidth(),
-            renderer.getHeight(),
-            renderer.getResult());
-        */
+        if (display)
+        {
+            // Display the result. Rendered image will be saved automatically when you 
+            // close the viewer. 
+            sutil::initGlut(&argc, argv);
+            Viewer::setRenderer(&renderer);
+            Viewer::run();
+        }
+        else
+        {
+            auto begin = std::chrono::steady_clock::now();
+
+            renderer.run(false);
+
+            auto end = std::chrono::steady_clock::now();
+
+            std::cout << "Elapsed time: "
+                << std::chrono::duration_cast<std::chrono::microseconds>(end -
+                    begin).count() * float(1e-6)
+                << " seconds"
+                << std::endl;
+
+            resultToPNG(renderer.getOutputFilename(),
+                renderer.getWidth(),
+                renderer.getHeight(),
+                renderer.getResult());
+        }
     }
     catch (const std::exception & ex)
     {

@@ -56,7 +56,8 @@ std::shared_ptr<Scene> SceneLoader::load(std::string sceneFilename)
     matprop.diffuse   = optix::make_float3(0);
     matprop.specular  = optix::make_float3(0);
     matprop.emission  = optix::make_float3(0);
-    matprop.shininess = 0;
+    matprop.shininess = 1;
+    optix::float3 attenuation = optix::make_float3(1, 0, 0);
 
     // Read a line in the scene file in each iteration
     while (std::getline(in, str))
@@ -126,12 +127,11 @@ std::shared_ptr<Scene> SceneLoader::load(std::string sceneFilename)
         else if (cmd == "sphere" && readValues(s, 4, fvalues))
         {
             Sphere sphere;
+            sphere.transform = transStack.top();
             sphere.center = optix::make_float3(fvalues[0], fvalues[1], fvalues[2]);
             sphere.radius = fvalues[3];
-            sphere.transform = transStack.top();
 
             sphere.phongmat = matprop;
-
             scene->spheres.push_back(sphere);
         }
         else if (cmd == "ambient" && readValues(s, 3, fvalues))
@@ -190,6 +190,25 @@ std::shared_ptr<Scene> SceneLoader::load(std::string sceneFilename)
             {
                 transStack.pop();
             }
+        }
+        else if (cmd == "directional" && readValues(s, 6, fvalues))
+        {
+            DirectionalLight dl;
+            dl.direction = optix::normalize(optix::make_float3(fvalues[0], fvalues[1], fvalues[2]));
+            dl.color     = optix::make_float3(fvalues[3], fvalues[4], fvalues[5]);
+            scene->dlights.push_back(dl);
+        }
+        else if (cmd == "point" && readValues(s, 6, fvalues))
+        {
+            PointLight pl;
+            pl.location = optix::make_float3(fvalues[0], fvalues[1], fvalues[2]);
+            pl.color = optix::make_float3(fvalues[3], fvalues[4], fvalues[5]);
+            pl.attenuation = attenuation;
+            scene->plights.push_back(pl);
+        }
+        else if (cmd == "attenuation" && readValues(s, 3, fvalues))
+        {
+            attenuation = optix::make_float3(fvalues[0], fvalues[1], fvalues[2]);
         }
         // TODO: use the examples above to handle other commands
     }

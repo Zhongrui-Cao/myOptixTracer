@@ -55,7 +55,9 @@ RT_PROGRAM void intersect(int primIndex)
     {
         // Pass attributes
         attrib.phongmat = tri.phongmat;
-        // TODO: assign attribute variables here
+        attrib.intersection = p;
+        attrib.wo = -ray.direction;
+        attrib.normal = dot(tri.normal, -ray.direction) > 0 ? tri.normal : -tri.normal;
 
         rtReportIntersection(0);
     }

@@ -45,7 +45,7 @@ void Renderer::initPrograms()
 
     // Miss progarm
     programs["miss"] = createProgram("Common.cu", "miss");
-    programs["miss"]["backgroundColor"]->setFloat(0.1f, 0.1f, 0.1f);
+    programs["miss"]["backgroundColor"]->setFloat(0.0f, 0.0f, 0.0f);
     context->setMissProgram(0, programs["miss"]);
 
     // Exception program

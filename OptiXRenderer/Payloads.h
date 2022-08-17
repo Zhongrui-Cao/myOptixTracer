@@ -9,9 +9,9 @@
 
 struct Payload
 {
-    optix::float3 radiance;
+    optix::float3 radiance, throughput, origin, dir;
+    unsigned int depth, seed;
     bool done;
-    // TODO: add more variable to payload if you need to
 };
 
 struct ShadowPayload
