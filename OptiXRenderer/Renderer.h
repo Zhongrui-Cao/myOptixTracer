@@ -28,6 +28,7 @@ class Renderer
     optix::Context context; // an OptiX conext that encapsulates all OptiX resources
     optix::Buffer resultBuffer; // a buffer that stores the rendered image
     std::unordered_map<std::string, optix::Program> programs; // a map that maps a name to a program
+    std::vector<std::string> integrators; // a list of supported integrators
     std::shared_ptr<Scene> scene; // the scene to render
     int numFrames; // number of frames to render (>= 1)
     int currentFrame; // the current frame in [1, numFrames], 0 if rendering hasn't started

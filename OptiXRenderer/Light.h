@@ -16,3 +16,8 @@ struct DirectionalLight
 {
     optix::float3 color, direction;
 };
+
+struct QuadLight
+{
+    optix::float3 a, ab, ac, intensity;
+};

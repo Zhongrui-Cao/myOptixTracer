@@ -63,6 +63,9 @@ void Renderer::initPrograms()
 
     // Integrators
     programs["raytracer"] = createProgram("RayTracer.cu", "closestHit");
+    integrators.push_back("raytracer");
+    programs["analyticdirect"] = createProgram("AnalyticDirect.cu", "closestHit");
+    integrators.push_back("analyticdirect");
 
     // Shadow Caster
     programs["shadowCaster"] = createProgram("Common.cu", "anyHit");
@@ -134,6 +137,12 @@ void Renderer::buildScene()
     context["height"]->setFloat(height);
 
     // Set material programs based on integrator type.
+    if (std::find(integrators.begin(), integrators.end(), scene->integratorName)
+        == integrators.end())
+    {
+        throw std::runtime_error("Doesn't support the integrator " +
+            scene->integratorName);
+    }
     programs["integrator"] = programs[scene->integratorName];
     Material material = context->createMaterial();
     material->setClosestHitProgram(0, programs["integrator"]);
@@ -210,6 +219,8 @@ void Renderer::buildScene()
     programs["integrator"]["plights"]->set(plightBuffer);
     Buffer dlightBuffer = createBuffer(scene->dlights);
     programs["integrator"]["dlights"]->set(dlightBuffer);
+    Buffer qlightBuffer = createBuffer(scene->qlights);
+    programs["integrator"]["qlights"]->set(qlightBuffer);
 
     // Validate everything before running 
     context->validate();

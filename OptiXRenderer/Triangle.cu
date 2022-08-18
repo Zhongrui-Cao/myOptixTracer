@@ -58,6 +58,7 @@ RT_PROGRAM void intersect(int primIndex)
         attrib.intersection = p;
         attrib.wo = -ray.direction;
         attrib.normal = dot(tri.normal, -ray.direction) > 0 ? tri.normal : -tri.normal;
+        attrib.isQuadLight = tri.isLight;
 
         rtReportIntersection(0);
     }

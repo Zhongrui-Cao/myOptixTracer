@@ -25,6 +25,7 @@ set(CU_FILES
     Triangle.cu
     Sphere.cu 
     Common.cu
+    AnalyticDirect.cu
 ) 
 
 include_directories(${GLUT_INCLUDE_DIR})

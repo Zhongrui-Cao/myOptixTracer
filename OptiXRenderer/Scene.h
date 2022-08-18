@@ -21,6 +21,7 @@ struct Scene
 
     std::vector<DirectionalLight> dlights;
     std::vector<PointLight> plights;
+    std::vector<QuadLight> qlights;
 
     // TODO: add other variables that you need here
 

@@ -103,7 +103,6 @@ std::shared_ptr<Scene> SceneLoader::load(std::string sceneFilename)
         }
         else if (cmd == "maxverts" && readValues(s, 1, fvalues))
         {
-            //真你妈坑人，maxverts没用，用了triangle会index out of bounds
             //scene->vertices = std::vector<optix::float3>(fvalues[0]);
         }
         else if (cmd == "vertex" && readValues(s, 3, fvalues))
@@ -121,6 +120,7 @@ std::shared_ptr<Scene> SceneLoader::load(std::string sceneFilename)
             triangle.normal = optix::normalize(optix::cross(triangle.v1 - triangle.v0, triangle.v2 - triangle.v0));
 
             triangle.phongmat = matprop;
+            triangle.isLight = false;
 
             scene->triangles.push_back(triangle);
         }
@@ -210,6 +210,45 @@ std::shared_ptr<Scene> SceneLoader::load(std::string sceneFilename)
         {
             attenuation = optix::make_float3(fvalues[0], fvalues[1], fvalues[2]);
         }
+        else if (cmd == "integrator" && readValues(s, 1, svalues))
+        {
+            scene->integratorName = svalues[0];
+        }
+        else if (cmd == "quadLight" && readValues(s, 12, fvalues))
+        {
+            QuadLight ql;
+            ql.a = optix::make_float3(fvalues[0], fvalues[1], fvalues[2]);
+            ql.ab = optix::make_float3(fvalues[3], fvalues[4], fvalues[5]);
+            ql.ac = optix::make_float3(fvalues[6], fvalues[7], fvalues[8]);
+            ql.intensity = optix::make_float3(fvalues[9], fvalues[10], fvalues[11]);
+            scene->qlights.push_back(ql);
+
+            // create 2 triangle to represent light
+            optix::float3 a = ql.a;
+            optix::float3 b = ql.a + ql.ab;
+            optix::float3 d = b + ql.ac;
+            optix::float3 c = a + ql.ac;
+
+            Triangle triangle1;
+            triangle1.v0 = a;
+            triangle1.v1 = b;
+            triangle1.v2 = c;
+            triangle1.normal = optix::normalize(optix::cross(triangle1.v1 - triangle1.v0, triangle1.v2 - triangle1.v0));
+            triangle1.phongmat.emission = ql.intensity;
+            triangle1.isLight = true;
+
+            Triangle triangle2;
+            triangle2.v0 = b;
+            triangle2.v1 = d;
+            triangle2.v2 = c;
+            triangle2.normal = optix::normalize(optix::cross(triangle2.v1 - triangle2.v0, triangle2.v2 - triangle2.v0));
+            triangle2.phongmat.emission = ql.intensity;
+            triangle2.isLight = true;
+
+            scene->triangles.push_back(triangle1);
+            scene->triangles.push_back(triangle2);
+        }
+
         // TODO: use the examples above to handle other commands
     }
 

@@ -21,6 +21,7 @@ struct Attributes
     // TODO: define the attributes structure
     MaterialProperties phongmat;
     optix::float3 intersection, normal, wo;
+    bool isQuadLight;
 };
 
 struct Triangle
@@ -28,6 +29,7 @@ struct Triangle
     // TODO: define the triangle structure
     optix::float3 v0, v1, v2, normal;
     MaterialProperties phongmat;
+    bool isLight;
 };
 
 struct Sphere

@@ -1,6 +1,6 @@
 #Stanford Dragon
 
-size 15360 8640
+size 640 480
 camera 0 0 20 0 0 -1 0 1 0 45
 output scene7.png
 
