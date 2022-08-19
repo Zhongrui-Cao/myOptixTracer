@@ -64,14 +64,11 @@ RT_PROGRAM void closestHit()
             //calc brdf
             float3 brdf_diffuse = (mv.diffuse / M_PIf);
             float rdotWiPows = powf(clamp(dot(r, wi), 0.0f, M_PIf / 2.0f), mv.shininess);
-
             float3 brdf_specular = make_float3(0, 0, 0);
             if (length(mv.specular) > 0) {
                 brdf_specular = mv.specular * ((mv.shininess + 2) / (2 * M_PIf)) * rdotWiPows;
             }
-            
             float3 brdf = brdf_diffuse + brdf_specular;
-            //rtPrintf("specular term is: %f, %f, %f\n", brdf_specular.x, brdf_specular.y, brdf_specular.z);
 
             //calc geometry term
             float g1 = clamp(dot(attrib.normal, wi), 0.0f, M_PIf / 2.0f);
@@ -83,8 +80,9 @@ RT_PROGRAM void closestHit()
             float lightDist = length(xprime - attrib.intersection);
             ShadowPayload shadowPayload;
             shadowPayload.isVisible = true;
+            // lightDist - 0.01f to not let the trangles shadow the entire light
             Ray shadowRay = make_Ray(attrib.intersection + wi * 0.001f,
-                wi, 1, 0.001f, lightDist - 0.1f);
+                wi, 1, 0.001f, lightDist - 0.01f);
             rtTrace(root, shadowRay, shadowPayload);
 
             float visibility;
