@@ -84,7 +84,7 @@ RT_PROGRAM void closestHit()
             ShadowPayload shadowPayload;
             shadowPayload.isVisible = true;
             Ray shadowRay = make_Ray(attrib.intersection + wi * 0.001f,
-                wi, 1, 0.001f, lightDist - 1.0f);
+                wi, 1, 0.001f, lightDist - 0.1f);
             rtTrace(root, shadowRay, shadowPayload);
 
             float visibility;
