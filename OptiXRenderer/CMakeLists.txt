@@ -26,6 +26,7 @@ set(CU_FILES
     Sphere.cu 
     Common.cu
     AnalyticDirect.cu
+    Direct.cu
 ) 
 
 include_directories(${GLUT_INCLUDE_DIR})

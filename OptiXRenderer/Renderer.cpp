@@ -66,6 +66,8 @@ void Renderer::initPrograms()
     integrators.push_back("raytracer");
     programs["analyticdirect"] = createProgram("AnalyticDirect.cu", "closestHit");
     integrators.push_back("analyticdirect");
+    programs["direct"] = createProgram("Direct.cu", "closestHit");
+    integrators.push_back("direct");
 
     // Shadow Caster
     programs["shadowCaster"] = createProgram("Common.cu", "anyHit");
@@ -135,6 +137,12 @@ void Renderer::buildScene()
     programs["rayGen"]["resultBuffer"]->set(resultBuffer);
     context["width"]->setFloat(width);
     context["height"]->setFloat(height);
+
+    // Set config
+    Config& config = scene->config;
+    std::vector<Config> configs = { config };
+    Buffer configBuffer = createBuffer(configs);
+    context["config"]->set(configBuffer);
 
     // Set material programs based on integrator type.
     if (std::find(integrators.begin(), integrators.end(), scene->integratorName)

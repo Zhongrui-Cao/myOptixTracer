@@ -5,6 +5,7 @@
 
 #include "Geometries.h"
 #include "Light.h"
+#include "Config.h"
 
 struct Scene
 {
@@ -24,6 +25,7 @@ struct Scene
     std::vector<QuadLight> qlights;
 
     // TODO: add other variables that you need here
+    Config config;
 
     // camera variables
     optix::float3 eye;

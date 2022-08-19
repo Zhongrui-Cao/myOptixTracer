@@ -56,7 +56,7 @@ std::shared_ptr<Scene> SceneLoader::load(std::string sceneFilename)
     matprop.diffuse   = optix::make_float3(0);
     matprop.specular  = optix::make_float3(0);
     matprop.emission  = optix::make_float3(0);
-    matprop.shininess = 1;
+    matprop.shininess = 0;
     optix::float3 attenuation = optix::make_float3(1, 0, 0);
 
     // Read a line in the scene file in each iteration
@@ -221,7 +221,6 @@ std::shared_ptr<Scene> SceneLoader::load(std::string sceneFilename)
             ql.ab = optix::make_float3(fvalues[3], fvalues[4], fvalues[5]);
             ql.ac = optix::make_float3(fvalues[6], fvalues[7], fvalues[8]);
             ql.intensity = optix::make_float3(fvalues[9], fvalues[10], fvalues[11]);
-            scene->qlights.push_back(ql);
 
             // create 2 triangle to represent light
             optix::float3 a = ql.a;
@@ -247,6 +246,20 @@ std::shared_ptr<Scene> SceneLoader::load(std::string sceneFilename)
 
             scene->triangles.push_back(triangle1);
             scene->triangles.push_back(triangle2);
+            scene->qlights.push_back(ql);
+        }
+        else if (cmd == "lightsamples" && readValues(s, 1, fvalues))
+        {
+            scene->config.lightSamples = fvalues[0];
+        }
+        else if (cmd == "lightstratify" && readValues(s, 1, svalues))
+        {
+            if (!strcmp(svalues[0].c_str(), "on")){
+                scene->config.lightStratify = true;
+            }
+            else {
+                scene->config.lightStratify = false;
+            }
         }
 
         // TODO: use the examples above to handle other commands

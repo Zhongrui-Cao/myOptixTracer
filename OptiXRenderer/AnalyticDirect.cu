@@ -23,11 +23,12 @@ rtDeclareVariable(Attributes, attrib, attribute attrib, );
 
 RT_PROGRAM void closestHit()
 {
+    float PI_F = 3.1415926535f;
     MaterialProperties mv = attrib.phongmat;
 
     float3 result = mv.emission;
 
-    float3 bdrf = mv.diffuse / 3.14159265358979323846f;
+    float3 brdf = (mv.diffuse / PI_F);
 
     if (attrib.isQuadLight) {
         payload.radiance = result;
@@ -59,54 +60,7 @@ RT_PROGRAM void closestHit()
 
         float3 Phi = (tg + tg1 + tg2 + tg3) / 2.0f;
 
-        result += bdrf * qlights[i].intensity * dot(Phi, attrib.normal);
-    }
-
-    // Calculate the direct illumination of point lights
-    for (int i = 0; i < plights.size(); i++)
-    {
-        // Shoot a shadow to determin whether the object is in shadow
-        float3 lightDir = normalize(plights[i].location - attrib.intersection);
-        float lightDist = length(plights[i].location - attrib.intersection);
-        ShadowPayload shadowPayload;
-        shadowPayload.isVisible = true;
-        Ray shadowRay = make_Ray(attrib.intersection + lightDir * 0.001f,
-            lightDir, 1, 0.001f, lightDist);
-        rtTrace(root, shadowRay, shadowPayload);
-
-        // If not in shadow
-        if (shadowPayload.isVisible)
-        {
-            float3 H = normalize(lightDir + attrib.wo);
-            float att = dot(plights[i].attenuation, make_float3(1, lightDist, lightDist * lightDist));
-            float3 I = mv.diffuse * fmaxf(dot(attrib.normal, lightDir), 0);
-            I += mv.specular * pow(fmaxf(dot(attrib.normal, H), 0), mv.shininess);
-            I *= plights[i].color / att;
-            result += I;
-        }
-    }
-
-    // Calculate the direct illumination of directional lights
-    for (int i = 0; i < dlights.size(); i++)
-    {
-        // Shoot a shadow to determin whether the object is in shadow
-        float3 lightDir = dlights[i].direction;
-        float lightDist = RT_DEFAULT_MAX;
-        ShadowPayload shadowPayload;
-        shadowPayload.isVisible = true;
-        Ray shadowRay = make_Ray(attrib.intersection + lightDir * 0.001f,
-            lightDir, 1, 0.001f, lightDist);
-        rtTrace(root, shadowRay, shadowPayload);
-
-        // If not in shadow
-        if (shadowPayload.isVisible)
-        {
-            float3 H = normalize(lightDir + attrib.wo);
-            float3 I = mv.diffuse * fmaxf(dot(attrib.normal, lightDir), 0);
-            I += mv.specular * pow(fmaxf(dot(attrib.normal, H), 0), mv.shininess);
-            I *= dlights[i].color;
-            result += I;
-        }
+        result += brdf * qlights[i].intensity * dot(Phi, attrib.normal);
     }
 
     // Compute the final radiance

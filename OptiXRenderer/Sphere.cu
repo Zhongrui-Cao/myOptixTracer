@@ -71,6 +71,7 @@ RT_PROGRAM void intersect(int primIndex)
         float4 tintersection = sphere.transform.inverse() * make_float4(attrib.intersection, 1);
         attrib.normal = normalize(make_float3(tintersection) / tintersection.w);
         attrib.normal = normalize(make_float3(sphere.transform.inverse().transpose() * make_float4(attrib.normal, 0)));
+        attrib.isQuadLight = false;
 
         rtReportIntersection(0);
     }
