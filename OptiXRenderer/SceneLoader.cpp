@@ -56,7 +56,7 @@ std::shared_ptr<Scene> SceneLoader::load(std::string sceneFilename)
     matprop.diffuse   = optix::make_float3(0);
     matprop.specular  = optix::make_float3(0);
     matprop.emission  = optix::make_float3(0);
-    matprop.shininess = 0;
+    matprop.shininess = 20;
     optix::float3 attenuation = optix::make_float3(1, 0, 0);
 
     // Read a line in the scene file in each iteration
@@ -128,6 +128,10 @@ std::shared_ptr<Scene> SceneLoader::load(std::string sceneFilename)
         {
             Sphere sphere;
             sphere.transform = transStack.top();
+            sphere.transform *= optix::Matrix4x4::translate(
+                optix::make_float3(fvalues[0], fvalues[1], fvalues[2]));
+            sphere.transform *= optix::Matrix4x4::scale(
+                optix::make_float3(fvalues[3]));
             sphere.center = optix::make_float3(fvalues[0], fvalues[1], fvalues[2]);
             sphere.radius = fvalues[3];
 

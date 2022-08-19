@@ -56,7 +56,7 @@ RT_PROGRAM void generateRays()
     // Shoot a ray to compute the color of the current pixel
     Payload payload;
     payload.radiance = make_float3(0.f);
-    payload.throughput = make_float3(1.f);
+    payload.throughput = make_float3(1.0f);
     payload.depth = 0;
     payload.done = false;
     int i = 0;

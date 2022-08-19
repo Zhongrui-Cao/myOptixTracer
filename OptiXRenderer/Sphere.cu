@@ -15,58 +15,39 @@ RT_PROGRAM void intersect(int primIndex)
 {
     // Find the intersection of the current ray and sphere
     Sphere sphere = spheres[primIndex];
-    float t;
+    Matrix4x4 itrans = sphere.transform.inverse();
+    float4 rayOriH = itrans * make_float4(ray.origin, 1);
+    float3 rayOri = make_float3(rayOriH) / rayOriH.w;
+    float3 rayDir = normalize(make_float3(itrans * make_float4(ray.direction, 0)));
 
-    // TODO: implement sphere intersection test here
-    float3 p0 = make_float3(sphere.transform.inverse() * make_float4(ray.origin, 1) + 0.01f * make_float4(ray.direction, 0));
-    float3 d  = make_float3(normalize(sphere.transform.inverse() * make_float4(ray.direction, 0)));
+    float t = 0;
+    float3 CP0 = rayOri;
+    float P1dotCP0 = dot(rayDir, CP0);
+    float CP0dotCP0 = dot(CP0, CP0);
+    float r2 = 1.f;
+    float disc = P1dotCP0 * P1dotCP0 - CP0dotCP0 + r2;
+    if (disc < 0) return;
+    if (disc == 0)
+        t = -P1dotCP0;
+    else if (CP0dotCP0 > r2)
+        t = -P1dotCP0 - sqrt(disc);
+    else
+        t = -P1dotCP0 + sqrt(disc);
 
-    float3 oc   = p0 - sphere.center;
-    float a     = dot(d, d);
-    float halfb = dot(d, oc);
-    float b     = 2.0f * halfb;
-    float c     = dot(oc, oc) - sphere.radius * sphere.radius;
+    if (t < 0.01f) return;
 
-    float discriminant = b * b - 4 * a * c;
-
-    // roots
-    float rootminus = (-b - sqrt(discriminant)) / (2.f * a);
-    float rootplus  = (-b + sqrt(discriminant)) / (2.f * a);
-
-    // complex root
-    if (discriminant < 0) {
-        return;
-    }
-    else if (discriminant > 0.f) {
-        //choose positive one if 2 real roots
-        if (((rootminus > 0) && (rootplus < 0)) || ((rootminus < 0) && (rootplus > 0))) {
-            t = (rootminus > 0 ? rootminus : rootplus);
-        }
-        //choose the smaller one if 2 positive roots
-        else if (rootminus > 0 && rootplus > 0) {
-            t = (rootminus > rootplus ? rootplus : rootminus);
-        }
-        else {
-            return; 
-        }
-    }
-    else {
-        // one root
-        t = rootminus;
-    }
-
-
-    float3 p = (p0 + d * t);
-    float4 intercection = sphere.transform * make_float4(p, 1);
-    p = make_float3(intercection) / intercection.w; // intersection in the world space
-    t = length(p - ray.origin);
+    // Intersection is found
+    float3 P = rayOri + t * rayDir; // intersection in the object space
+    float4 intersectionH = sphere.transform * make_float4(P, 1);
+    P = make_float3(intersectionH) / intersectionH.w; // intersection in the world space
+    t = length(P - ray.origin); // distance
 
     // Report intersection (material programs will handle the rest)
     if (rtPotentialIntersection(t))
     {
         // Pass attributes
         attrib.phongmat = sphere.phongmat;
-        attrib.intersection = p;
+        attrib.intersection = P;
         attrib.wo = -ray.direction;
         float4 tintersection = sphere.transform.inverse() * make_float4(attrib.intersection, 1);
         attrib.normal = normalize(make_float3(tintersection) / tintersection.w);

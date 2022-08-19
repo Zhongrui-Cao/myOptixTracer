@@ -44,20 +44,34 @@ RT_PROGRAM void closestHit()
     {
         QuadLight ql = qlights[i];
         float3 sum = make_float3(0, 0, 0);
-        // random sampling
+        
         for (int i = 0; i < cf.lightSamples; i++) {
+            //for tratified sampling
+            int M = sqrt((double)cf.lightSamples);
+            int row = i / M;
+            int col = i % M;
+
             float u1 = rnd(payload.seed);
             float u2 = rnd(payload.seed);
             //light sample position
             float3 xprime = ql.a + u1 * ql.ab + u2 * ql.ac;
+            if (cf.lightStratify == true) {
+                xprime = ql.a + (col + u1) / M * ql.ab + (row + u2) / M * ql.ac;
+            }
             //light sample direction
             float3 wi = normalize(xprime - attrib.intersection);
 
             //calc brdf
             float3 brdf_diffuse = (mv.diffuse / M_PIf);
             float rdotWiPows = powf(clamp(dot(r, wi), 0.0f, M_PIf / 2.0f), mv.shininess);
-            float3 brdf_specular = mv.specular * ((mv.shininess + 2) / (2 * M_PIf)) * rdotWiPows;
+
+            float3 brdf_specular = make_float3(0, 0, 0);
+            if (length(mv.specular) > 0) {
+                brdf_specular = mv.specular * ((mv.shininess + 2) / (2 * M_PIf)) * rdotWiPows;
+            }
+            
             float3 brdf = brdf_diffuse + brdf_specular;
+            //rtPrintf("specular term is: %f, %f, %f\n", brdf_specular.x, brdf_specular.y, brdf_specular.z);
 
             //calc geometry term
             float g1 = clamp(dot(attrib.normal, wi), 0.0f, M_PIf / 2.0f);
@@ -90,7 +104,7 @@ RT_PROGRAM void closestHit()
     }
 
     // Compute the final radiance
-    payload.radiance = result;
+    payload.radiance = result * payload.throughput;
 
     payload.done = true;
 
