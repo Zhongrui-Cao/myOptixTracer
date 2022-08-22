@@ -76,7 +76,7 @@ RT_PROGRAM void generateRays()
         // Prepare to shoot next ray
         origin = payload.origin;
         dir = payload.dir;
-    } while (!payload.done && payload.depth != 1);
+    } while (!payload.done && payload.depth != 5);
 
     if (frameID.x == 1) 
         resultBuffer[launchIndex] = result;

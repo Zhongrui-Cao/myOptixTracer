@@ -1,6 +1,6 @@
 #Stanford Dragon
 
-size 3840 2160
+size 640 480
 integrator direct
 lightsamples 25
 lightstratify on

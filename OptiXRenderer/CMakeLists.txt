@@ -27,6 +27,7 @@ set(CU_FILES
     Common.cu
     AnalyticDirect.cu
     Direct.cu
+    Pathtracer.cu
 ) 
 
 include_directories(${GLUT_INCLUDE_DIR})

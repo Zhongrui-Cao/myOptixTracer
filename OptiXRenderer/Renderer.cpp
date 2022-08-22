@@ -68,6 +68,8 @@ void Renderer::initPrograms()
     integrators.push_back("analyticdirect");
     programs["direct"] = createProgram("Direct.cu", "closestHit");
     integrators.push_back("direct");
+    programs["pathtracer"] = createProgram("Pathtracer.cu", "closestHit");
+    integrators.push_back("pathtracer");
 
     // Shadow Caster
     programs["shadowCaster"] = createProgram("Common.cu", "anyHit");
@@ -130,7 +132,7 @@ void Renderer::buildScene()
     height = scene->height;
     outputFilename = scene->outputFilename;
     currentFrame = 0;
-    numFrames = 1;
+    numFrames = MAXINT;
 
     // Set width and height
     resultBuffer->setSize(width, height);
