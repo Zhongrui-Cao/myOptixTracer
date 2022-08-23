@@ -34,18 +34,83 @@ RT_PROGRAM void closestHit()
     float3 result = make_float3(0, 0, 0);
 
     if (attrib.isQuadLight) {
-        payload.radiance = mv.emission * payload.throughput;
+        if (!cf.nextEventEstimation || payload.depth == 0) {
+            payload.radiance += mv.emission * payload.throughput;
+            payload.done = true;
+            return;
+        }
         payload.done = true;
         return;
     }
 
     float3 r = normalize(reflect(-attrib.wo, attrib.normal));
-        
+    // direct lighting
+    for (int i = 0; i < qlights.size(); i++)
+    {
+        QuadLight ql = qlights[i];
+        float3 sum = make_float3(0, 0, 0);
+
+        float u1 = rnd(payload.seed);
+        float u2 = rnd(payload.seed);
+        //light sample position
+        float3 xprime = ql.a + u1 * ql.ab + u2 * ql.ac;
+
+        //light sample direction
+        float3 wi = normalize(xprime - attrib.intersection);
+
+        //calc brdf
+        float3 brdf_diffuse = (mv.diffuse / M_PIf);
+        float rdotWiPows = powf(clamp(dot(r, wi), 0.0f, M_PIf / 2.0f), mv.shininess);
+        float3 brdf_specular = make_float3(0, 0, 0);
+        if (length(mv.specular) > 0) {
+            brdf_specular = mv.specular * ((mv.shininess + 2) / (2 * M_PIf)) * rdotWiPows;
+        }
+        float3 brdf = brdf_diffuse + brdf_specular;
+
+        //calc geometry term
+        float g1 = clamp(dot(attrib.normal, wi), 0.0f, M_PIf / 2.0f);
+        float3 nl = normalize(cross(ql.ab, ql.ac));
+        float g2 = clamp(dot(nl, wi), 0.0f, M_PIf / 2.0f);
+        float geometryTerm = (g1 * g2) / powf(length(attrib.intersection - xprime), 2.0f);
+
+        //shoot shadow ray
+        float lightDist = length(xprime - attrib.intersection);
+        ShadowPayload shadowPayload;
+        shadowPayload.isVisible = true;
+        // lightDist - 0.01f to not let the trangles shadow the entire light
+        Ray shadowRay = make_Ray(attrib.intersection + wi * 0.001f,
+            wi, 1, 0.001f, lightDist - 0.01f);
+        rtTrace(root, shadowRay, shadowPayload);
+
+        float visibility;
+        if (shadowPayload.isVisible) {
+            visibility = 1.0f;
+        }
+        else {
+            visibility = 0.0f;
+        }
+
+        sum = brdf * geometryTerm * visibility;
+
+        float A = length(cross(ql.ab, ql.ac));
+
+        result += ql.intensity * A * sum;
+    }
+
+    if (cf.nextEventEstimation) {
+        payload.radiance += result * payload.throughput;
+        if (payload.depth >= cf.maxDepth - 1) {
+            payload.done = true;
+            return;
+        }
+    }
+
+    // indirect lighting
     float xi1 = rnd(payload.seed);
     float xi2 = rnd(payload.seed);
 
     float theta = acosf(xi1);
-    float phi   = 2.0f * M_PIf * xi2;
+    float phi = 2.0f * M_PIf * xi2;
 
     float3 s = make_float3(cosf(phi) * sinf(theta), sinf(phi) * sinf(theta), cosf(theta));
 
@@ -66,7 +131,7 @@ RT_PROGRAM void closestHit()
         brdf_specular = mv.specular * ((mv.shininess + 2) / (2 * M_PIf)) * rdotWiPows;
     }
     float3 brdf = brdf_diffuse + brdf_specular;
-
+    
     // Set origin and dir for tracing the reflection ray
     payload.origin = attrib.intersection;
     payload.dir = wi; // random reflection

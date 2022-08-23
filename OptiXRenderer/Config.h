@@ -8,6 +8,8 @@ struct Config
     float epsilon;
     int lightSamples;
     bool lightStratify;
+    bool nextEventEstimation;
+    int frames;
 
     Config()
     {
@@ -15,5 +17,7 @@ struct Config
         epsilon = 0.0001f;
         lightSamples = 9;
         lightStratify = false;
+        nextEventEstimation = false;
+        frames = 10000;
     }
 };

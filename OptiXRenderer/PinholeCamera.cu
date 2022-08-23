@@ -4,6 +4,7 @@
 #include "random.h"
 
 #include "Payloads.h"
+#include "Config.h"
 
 using namespace optix;
 
@@ -14,6 +15,9 @@ rtDeclareVariable(rtObject, root, , ); // Optix graph
 rtDeclareVariable(uint2, launchIndex, rtLaunchIndex, ); // a 2d index (x, y)
 
 rtDeclareVariable(int1, frameID, , );
+
+// Config buffer
+rtBuffer<Config> config;
 
 // Camera info 
 
@@ -28,6 +32,8 @@ rtDeclareVariable(float1, height, , );
 
 RT_PROGRAM void generateRays()
 {
+    Config cf = config[0];
+
     float3 result = make_float3(0.f);
     size_t2 resultSize = resultBuffer.size();
     unsigned int index = launchIndex.x * resultSize.y + launchIndex.y;
@@ -76,7 +82,7 @@ RT_PROGRAM void generateRays()
         // Prepare to shoot next ray
         origin = payload.origin;
         dir = payload.dir;
-    } while (!payload.done && payload.depth != 5);
+    } while (!payload.done && payload.depth != cf.maxDepth);
 
     if (frameID.x == 1) 
         resultBuffer[launchIndex] = result;

@@ -265,6 +265,16 @@ std::shared_ptr<Scene> SceneLoader::load(std::string sceneFilename)
                 scene->config.lightStratify = false;
             }
         }
+        else if (cmd == "nexteventestimation" && readValues(s, 1, svalues))
+        {
+            if (!strcmp(svalues[0].c_str(), "on")) {
+                scene->config.nextEventEstimation = true;
+            }
+            else {
+                scene->config.nextEventEstimation = false;
+            }
+        }
+
 
         // TODO: use the examples above to handle other commands
     }

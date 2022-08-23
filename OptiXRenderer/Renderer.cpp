@@ -132,7 +132,7 @@ void Renderer::buildScene()
     height = scene->height;
     outputFilename = scene->outputFilename;
     currentFrame = 0;
-    numFrames = MAXINT;
+    numFrames = scene->config.frames;
 
     // Set width and height
     resultBuffer->setSize(width, height);
