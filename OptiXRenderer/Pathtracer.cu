@@ -99,9 +99,28 @@ RT_PROGRAM void closestHit()
 
     if (cf.nextEventEstimation) {
         payload.radiance += result * payload.throughput;
-        if (payload.depth >= cf.maxDepth - 1) {
+        if (payload.depth >= cf.maxDepth - 1 && !cf.russianRoulette) {
             payload.done = true;
             return;
+        }
+    }
+
+    // russian roulette
+    if (cf.russianRoulette) {
+        // load gun
+        float q = 1.0f - fminf(fmaxf(fmaxf(payload.throughput.x, payload.throughput.y), payload.throughput.z), 1.0f);
+        // spin wheel
+        //unsigned int world = tea<16>(rnd(payload.seed), rnd(payload.seed));
+        float spin = rnd(payload.seed);
+        // pull trigger
+        if (spin < q) {
+            // get killed, no indirect ray shot
+            payload.done = true;
+            return;
+        }
+        else {
+            // alive with boosted throughput
+            payload.throughput *= 1.0f / (1.0f - q);
         }
     }
 

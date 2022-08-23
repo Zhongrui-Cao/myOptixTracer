@@ -82,7 +82,13 @@ RT_PROGRAM void generateRays()
         // Prepare to shoot next ray
         origin = payload.origin;
         dir = payload.dir;
-    } while (!payload.done && payload.depth != cf.maxDepth);
+
+        if (!cf.russianRoulette) {
+            if (payload.depth != cf.maxDepth) {
+                break;
+            }
+        }
+    } while (!payload.done);
 
     if (frameID.x == 1) 
         resultBuffer[launchIndex] = result;

@@ -9,6 +9,7 @@ struct Config
     int lightSamples;
     bool lightStratify;
     bool nextEventEstimation;
+    bool russianRoulette;
     int frames;
 
     Config()
@@ -18,6 +19,7 @@ struct Config
         lightSamples = 9;
         lightStratify = false;
         nextEventEstimation = false;
+        russianRoulette = false;
         frames = 10000;
     }
 };

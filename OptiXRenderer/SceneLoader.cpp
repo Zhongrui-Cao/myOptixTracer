@@ -274,6 +274,15 @@ std::shared_ptr<Scene> SceneLoader::load(std::string sceneFilename)
                 scene->config.nextEventEstimation = false;
             }
         }
+        else if (cmd == "russianroulette" && readValues(s, 1, svalues))
+        {
+            if (!strcmp(svalues[0].c_str(), "on")) {
+                scene->config.russianRoulette = true;
+            }
+            else {
+                scene->config.russianRoulette = false;
+            }
+        }
 
 
         // TODO: use the examples above to handle other commands
