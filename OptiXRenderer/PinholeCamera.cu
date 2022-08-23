@@ -84,7 +84,7 @@ RT_PROGRAM void generateRays()
         dir = payload.dir;
 
         if (!cf.russianRoulette) {
-            if (payload.depth != cf.maxDepth) {
+            if (payload.depth == cf.maxDepth) {
                 break;
             }
         }

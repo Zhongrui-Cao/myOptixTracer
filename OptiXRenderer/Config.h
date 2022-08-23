@@ -20,6 +20,6 @@ struct Config
         lightStratify = false;
         nextEventEstimation = false;
         russianRoulette = false;
-        frames = 10000;
+        frames = 64;
     }
 };
